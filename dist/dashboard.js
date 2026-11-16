@@ -50,7 +50,8 @@ export function dashboardHtml(progress, esc) {
     + '<p><strong>Interactive Virtual Drosophila Research Laboratory</strong><br>Explore, learn, and experiment in a virtual <i>Drosophila</i> laboratory.</p>'
     + '<div class="dashboard-actions">'
     + (resume ? actionButton('launch-lab', resume, 'Resume last session', esc, 'small-button protocol-primary') : actionButton('mode', 'protocols', 'Browse protocol library', esc, 'small-button protocol-primary'))
-    + actionButton('mode', 'labs', 'Open laboratories', esc) + actionButton('mode', 'anatomy', 'Explore 3D anatomy', esc) + actionButton('mode', 'living', 'Meet the interactive fly', esc) + '</div></div>'
+    + actionButton('open-research', '', 'Search research resources', esc) + actionButton('mode', 'labs', 'Open laboratories', esc)
+    + actionButton('mode', 'anatomy', 'Explore 3D anatomy', esc) + actionButton('mode', 'living', 'Meet the interactive fly', esc) + '</div></div>'
     + '<div class="dashboard-stats" aria-label="Laboratory coverage"><div><strong>' + ready + '</strong><span>Training lessons</span></div><div><strong>' + inventory.length + '</strong><span>Published references</span></div><div><strong>' + completed.length + '/' + ready + '</strong><span>Lessons completed</span></div></div>'
     + '</section>'
     + '<div class="dashboard-columns"><div class="dashboard-main">'

@@ -18,7 +18,11 @@
       <span>Fly<span class="brand-accent">Lab</span><small> 3D</small></span>
     </a>
     <nav id="modes" class="modes" aria-label="Exploration mode"></nav>
-    <button class="icon-button about-button" id="about-button" aria-label="About FlyLab 3D, researcher, and sources" title="About FlyLab 3D"></button>
+    <div class="top-actions">
+      <button type="button" class="icon-button" id="global-research" aria-label="Search research resources" aria-keyshortcuts="/" title="Search research resources (/)"></button>
+      <button type="button" class="icon-button" id="theme-toggle" aria-label="Change color theme"></button>
+      <button type="button" class="icon-button" id="about-button" aria-label="About FlyLab 3D, researcher, and sources" title="About FlyLab 3D"></button>
+    </div>
   </header>
   <main class="workbench" id="workbench">
     <aside id="navigator" class="navigator" aria-label="Anatomy navigator">
@@ -145,6 +149,7 @@
       <h2>Observations</h2>
       <p>Experiment and Compare read CSV or JSON files in your browser. Measurements are averaged by structure, condition and time point. The example file contains illustrative values.</p>
       <h2>Sources</h2>
+      <p><a href="https://github.com/atif-devz/FlyLab-3D" target="_blank" rel="noopener noreferrer">FlyLab 3D source code and issue tracker ↗</a></p>
       <ul class="dialog-sources" id="about-sources"></ul>
     </div>
   </dialog>

@@ -36,11 +36,17 @@ const moduleOrder = [
   ['guide', 'research-guide.js', { './protocol-inventory.js': 'inventory' }],
   ['course', 'course-lab.js', { './protocol-lessons.js': 'lessons' }],
   ['spatial', 'spatial-lab.js', { three: 'three', './fly-model.js': 'model', './larva-model.js': 'larva' }],
+  ['researchSources', 'research-sources.js', {}],
+  ['researchWorkbench', 'research-workbench.js', { './protocol-inventory.js': 'inventory', './anatomy.js': 'anatomy',
+    './larval-anatomy.js': 'larvalAnatomy', './research-sources.js': 'researchSources' }],
+  ['experimentBuilder', 'experiment-builder.js', { './analysis-core.js': 'analysisCore', './protocol-inventory.js': 'inventory' }],
+  ['inference', 'inference-lab.js', { './analysis-core.js': 'analysisCore', './workbook.js': 'workbook' }],
   ['app', 'app.js', { './anatomy.js': 'anatomy', './larval-anatomy.js': 'larvalAnatomy', './observations.js': 'observations',
     './protocol-lab.js': 'lab', './dashboard.js': 'dashboard', './protocol-inventory.js': 'inventory', './training-progress.js': 'trainingProgress',
     './scene.js': 'scene', './expanded-dissection.js': 'expanded', './microscopy.js': 'microscopy', './genetics-lab.js': 'genetics',
     './molecular-lab.js': 'molecular', './neuro-lab.js': 'neuro', './behavior-lab.js': 'behavior', './analysis-lab.js': 'analysis',
-    './research-planner.js': 'planner', './research-guide.js': 'guide', './spatial-lab.js': 'spatial', './course-lab.js': 'course' }],
+    './research-planner.js': 'planner', './research-guide.js': 'guide', './spatial-lab.js': 'spatial', './course-lab.js': 'course',
+    './research-workbench.js': 'researchWorkbench', './experiment-builder.js': 'experimentBuilder', './inference-lab.js': 'inference' }],
 ];
 const manifest = moduleOrder.map(([id, filename, deps]) => [id, read(filename), deps]);
 const embedded = JSON.stringify(manifest).replaceAll('<', '\\u003c');

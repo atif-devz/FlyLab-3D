@@ -14,6 +14,9 @@ import { createAnalysisLab } from './analysis-lab.js';
 import { createResearchPlanner } from './research-planner.js';
 import { createResearchGuide } from './research-guide.js';
 import { createCourseLab } from './course-lab.js';
+import { createResearchWorkbench } from './research-workbench.js';
+import { createExperimentBuilder } from './experiment-builder.js';
+import { createInferenceLab } from './inference-lab.js';
 
 const $ = id => document.getElementById(id);
 const anatomyById = new Map([...adultAnatomy, ...larvalAnatomy].map(part => [part.id, part]));
@@ -37,6 +40,8 @@ const buttons = {
   down: '<path d="m5 8 5 5 5-5"/>',
   arrow: '<path d="M4 10h12m-5-5 5 5-5 5"/>',
   search: '<circle cx="8.6" cy="8.6" r="4.8"/><path d="m12 12 4.5 4.5"/>',
+  moon: '<path d="M17 12.5A7.1 7.1 0 0 1 7.5 3a7.3 7.3 0 1 0 9.5 9.5Z"/>',
+  sun: '<circle cx="10" cy="10" r="3.5"/><path d="M10 2v2m0 12v2M2 10h2m12 0h2M4.4 4.4l1.4 1.4m8.4 8.4 1.4 1.4m0-11.2-1.4 1.4m-8.4 8.4-1.4 1.4"/>',
   book: '<path d="M10 5C7 3 5 3 2 4v12c3-1 5-1 8 1 3-2 5-2 8-1V4c-3-1-5-1-8 1v12"/>',
   anchor: '<circle cx="10" cy="5" r="2.4"/><path d="M10 7.5v7.7m-5-4.5v2.2c0 2 2.2 3.6 5 3.6s5-1.6 5-3.6v-2.2M7.3 9.6h5.4"/>',
   forceps: '<path d="m5 3 5 14 5-14M4 3h2m8 0h2"/>',
@@ -518,7 +523,7 @@ function renderInspector(highlights) {
     + '<h2>' + esc(part.name) + '</h2><p>' + esc(part.description) + '</p><p class="subtext">' + esc(part.location) + ' · Schematic geometry</p>'
     + (value === undefined ? '' : '<p><strong>' + esc(state.condition) + '</strong> ' + fmt.format(value) + '</p>')
     + (other === undefined ? '' : '<p><strong>' + esc(state.compareTo) + '</strong> ' + fmt.format(other) + '</p>')
-    + (source ? '<p><a class="source-link" href="' + esc(source.url) + '" target="_blank" rel="noopener noreferrer">' + esc(source.title) + '</a></p>' : '');
+    + (source ? '<p class="subtext">Anatomy reference · <a class="source-link" href="' + esc(source.url) + '" target="_blank" rel="noopener noreferrer">' + esc(source.title) + '</a></p>' : '');
 }
 
 function stopTour() {
@@ -612,6 +617,30 @@ const labOptions = {
     setMode('labs');
   },
 };
+const researchWorkspace = createResearchWorkbench(labOptions);
+const experimentWorkspace = createExperimentBuilder(labOptions);
+
+function openStation(id) {
+  if (!stations.has(id)) return;
+  activeStation = id;
+  setMode('labs');
+}
+
+function openResearch() {
+  openStation('resources');
+  $('research-query')?.focus();
+}
+
+function openAnatomy(stage, id) {
+  changeSpecimen(stage, false);
+  state.tab = 'structures';
+  setMode('anatomy');
+  if (id) {
+    selectPart(id, true);
+    viewer?.focus(id);
+  }
+}
+
 function lazyWorkspace(load) {
   let workspace;
   let pending;
@@ -634,6 +663,12 @@ function lazyWorkspace(load) {
   };
 }
 const stationGroups = [
+  ['Research workbench', [
+    ['resources', 'Research resources', researchWorkspace],
+    ['experiment-builder', 'Experiment builder', experimentWorkspace],
+    ['analysis', 'Data analysis', analysisWorkspace],
+    ['inference', 'Statistical inference', createInferenceLab(labOptions)],
+  ]],
   ['Specimens and imaging', [
     ['expanded', 'Expanded dissection', lazyWorkspace(() => import('./expanded-dissection.js').then(module => module.createExpandedDissection))],
     ['microscopy', 'Imaging and microscopy', createMicroscopy(labOptions)],
@@ -645,7 +680,6 @@ const stationGroups = [
     ['behavior', 'Behavior and physiology', createBehaviorLab(labOptions)],
   ]],
   ['Research and training', [
-    ['analysis', 'Data analysis', analysisWorkspace],
     ['planner', 'Research planner', createResearchPlanner(labOptions)],
     ['guide', 'Research guide', createResearchGuide(labOptions)],
     ['learning', 'Learning and assessment', createCourseLab(labOptions)],
@@ -669,7 +703,16 @@ function renderLabWorkspace(show) {
     '<div class="lab-station-group"><h2>' + esc(title) + '</h2>' + items.map(([id, label]) =>
       '<button type="button" data-action="station" data-key="' + id + '"' + (id === activeStation ? ' aria-current="page"' : '') + '>' + esc(label) + '</button>').join('') + '</div>').join('')
     + '</nav><div class="lab-panel" id="lab-panel">' + workspace.render() + '</div>';
-  workspace.bind($('lab-panel'), { openLesson(id) { setMode('protocols'); lab.action('protocol-open', id); } });
+  workspace.bind($('lab-panel'), {
+    openLesson(id) { setMode('protocols'); lab.action('protocol-open', id); },
+    openStation,
+    openAnatomy,
+    addExperimentReference(url) {
+      if (!experimentWorkspace.addReference(url)) return;
+      openStation('experiment-builder');
+      $('lab-panel').querySelector('[name="referenceText"]')?.focus();
+    },
+  });
 }
 
 const lab = createProtocolLab({
@@ -720,6 +763,36 @@ const lab = createProtocolLab({
 });
 
 $('modes').innerHTML = modes.map(([id, name, picture]) => '<button type="button" aria-pressed="false" data-action="mode" data-key="' + id + '">' + icon(picture, 16) + name + '</button>').join('');
+$('global-research').innerHTML = icon('search', 17);
+$('global-research').onclick = openResearch;
+const themeKey = 'flylab-color-theme-v1';
+let colorTheme = 'light';
+try {
+  const preference = localStorage.getItem(themeKey);
+  if (preference === 'light' || preference === 'dark') colorTheme = preference;
+  else if (matchMedia('(prefers-color-scheme: dark)').matches) colorTheme = 'dark';
+} catch { /* Browser storage may be unavailable. */ }
+function renderTheme() {
+  if (document.documentElement) document.documentElement.dataset.theme = colorTheme;
+  const toggle = $('theme-toggle');
+  const dark = colorTheme === 'dark';
+  const label = dark ? 'Switch to light theme' : 'Switch to dark theme';
+  toggle.innerHTML = icon(dark ? 'sun' : 'moon', 17);
+  toggle.title = label;
+  toggle.setAttribute('aria-label', label);
+}
+$('theme-toggle').onclick = () => {
+  colorTheme = colorTheme === 'dark' ? 'light' : 'dark';
+  try { localStorage.setItem(themeKey, colorTheme); } catch { /* Preference remains active for this session. */ }
+  renderTheme();
+};
+renderTheme();
+document.addEventListener('keydown', event => {
+  if (event.key !== '/' || event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) return;
+  if ($('about').open || event.target?.closest?.('input, textarea, select, [contenteditable], dialog')) return;
+  event.preventDefault();
+  openResearch();
+});
 $('about-button').innerHTML = icon('info', 17);
 $('close-about').innerHTML = icon('close', 17);
 $('camera-controls').innerHTML = [
@@ -825,10 +898,10 @@ document.addEventListener('click', event => {
     case 'fly-play':
       if (fullAdultView()) viewer?.playFly(key);
       break;
+    case 'open-research': openResearch(); break;
     case 'station': {
       if (stations.has(key)) {
-        activeStation = key;
-        setMode('labs');
+        openStation(key);
         if (event.detail === 0) $('lab-workspaces').querySelector('[data-action="station"][aria-current="page"]')?.focus();
       }
       break;
@@ -989,7 +1062,10 @@ function openEntryRoute() {
   const view = parameters.get('view');
   const station = parameters.get('station');
   const bench = parameters.get('bench');
-  if (view === 'labs' && stations.has(station)) activeStation = station;
+  if (view === 'labs' && stations.has(station)) {
+    activeStation = station;
+    if (station === 'resources' && parameters.has('q')) researchWorkspace.seed(parameters.get('q'));
+  }
   if (modes.some(([id]) => view === id)) setMode(view);
   if (view === 'protocols' && bench) lab.action('protocol-open', bench);
 }
@@ -1040,6 +1116,7 @@ async function startViewer() {
       lab.replay();
     }
     viewer.orient(currentView, false);
+    if (state.mode === 'anatomy' && state.inspector && state.selected) viewer.focus(state.selected);
     viewerMessage = '';
     render();
   } catch (error) {
