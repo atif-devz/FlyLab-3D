@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="FlyLab 3D is a virtual Drosophila laboratory for anatomy, dissection, microscopy, experiments, analysis, and research training.">
+  <meta name="theme-color" content="#f7f9f8">
+  <title>FlyLab 3D | Virtual Drosophila Laboratory</title>
+  <link rel="icon" href="./fly.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./researcher.css">
+  <script type="importmap">{"imports":{"three":"./vendor/three.module.min.js"}}</script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="FlyLab 3D home">
+      <img src="./fly.svg" alt="" width="49" height="38">
+      <span>Fly<span class="brand-accent">Lab</span><small> 3D</small></span>
+    </a>
+    <nav id="modes" class="modes" aria-label="Exploration mode"></nav>
+    <button class="icon-button about-button" id="about-button" aria-label="About FlyLab 3D, researcher, and sources" title="About FlyLab 3D"></button>
+  </header>
+  <main class="workbench" id="workbench">
+    <aside id="navigator" class="navigator" aria-label="Anatomy navigator">
+      <div class="specimen" aria-label="Anatomy reference">
+        <span class="specimen-marker"></span>
+        <div class="specimen-choice"><label for="specimen-stage" class="sr-only">Specimen life stage</label>
+          <select id="specimen-stage">
+            <option value="adult">Adult female fruit fly</option>
+            <option value="larva">Third-instar larva</option>
+          </select>
+          <em>Drosophila melanogaster</em>
+        </div>
+      </div>
+      <div class="tabs" id="tabs" role="tablist" aria-label="Anatomy navigation">
+        <button id="tab-structures" type="button" role="tab" aria-controls="sidebar-content" data-tab="structures">Structures</button>
+        <button id="tab-layers" type="button" role="tab" aria-controls="sidebar-content" data-tab="layers">Layers</button>
+        <button id="tab-sources" type="button" role="tab" aria-controls="sidebar-content" data-tab="sources">Sources</button>
+      </div>
+      <section id="sidebar-content" class="sidebar-content" role="tabpanel" aria-labelledby="tab-layers"></section>
+    </aside>
+
+    <section class="stage" id="stage" aria-label="Anatomical viewer">
+      <div id="dashboard" class="protocol-catalog dashboard" hidden></div>
+      <div id="lab-workspaces" class="lab-workspaces" hidden></div>
+      <section id="protocol-catalog" class="protocol-catalog" aria-label="Protocol library" hidden></section>
+      <div class="view-grid" id="view-grid">
+        <div id="canvas-wrap" class="canvas-wrap"></div>
+        <div id="comparison-wrap" class="canvas-wrap" hidden></div>
+      </div>
+      <p class="viewer-status" id="viewer-status" role="status">Loading 3D specimen…</p>
+      <div class="top-left">
+        <details class="display" id="display">
+          <summary>Display controls</summary>
+          <div class="display-panel">
+            <label><input id="show-labels" type="checkbox"> Structure labels</label>
+            <label><input id="auto-rotate" type="checkbox"> Rotate specimen</label>
+            <label for="orientation">Camera view</label>
+            <select id="orientation">
+              <option value="default">Three-quarter</option>
+              <option value="side">Lateral</option>
+              <option value="top">Dorsal</option>
+              <option value="front">Anterior</option>
+            </select>
+            <label class="range-label" for="opacity">Cuticle opacity <span id="opacity-value">100%</span></label>
+            <input type="range" id="opacity" min="0" max="100" value="100">
+          </div>
+        </details>
+      </div>
+      <div id="camera-controls" class="camera-controls" aria-label="Camera controls"></div>
+      <button id="model-label" class="model-label" hidden></button>
+      <div class="protocol-caption" id="protocol-caption" hidden></div>
+      <button id="protocol-landmark" class="protocol-landmark" type="button" data-action="protocol-target" hidden><span></span><strong></strong></button>
+      <section id="inspector" class="inspector" aria-label="Structure details" hidden></section>
+      <div class="bottom-bar" id="bottom-bar">
+        <div id="selection-tools" class="selection-tools" hidden aria-label="Selected structure controls"></div>
+        <div id="tour-tools" class="pill">
+          <span id="tour-caption">Drag to orbit · Scroll to zoom</span>
+          <button id="tour" class="play-button" type="button">Play layers</button>
+        </div>
+        <div class="pill motion-pill">
+          <span id="motion-caption">Illustrative motion</span>
+          <details id="fly-panel" class="fly-panel" hidden>
+            <summary>Interactive fly</summary>
+            <div class="fly-panel-card">
+              <div class="fly-modes" role="group" aria-label="Fly animation mode">
+                <button type="button" data-action="fly-style" data-key="scientific" aria-pressed="true">Scientific mode</button>
+                <button type="button" data-action="fly-style" data-key="fun" aria-pressed="false">Fun mode</button>
+              </div>
+              <div class="fly-actions" role="group" aria-label="Fly animations">
+                <button type="button" data-action="fly-play" data-key="normal">Normal</button>
+                <button type="button" data-action="fly-play" data-key="groom">Groom</button>
+                <button type="button" data-action="fly-play" data-key="walk">Walk</button>
+                <button type="button" data-action="fly-play" data-key="flutter">Wing flutter</button>
+                <button type="button" data-action="fly-play" data-key="dance" data-playful>Dance</button>
+                <button type="button" data-action="fly-play" data-key="wave" data-playful>Wave</button>
+                <button type="button" data-action="fly-play" data-key="happy" data-playful>Happy</button>
+                <button type="button" data-action="fly-play" data-key="curious" data-playful>Curious</button>
+                <button type="button" data-action="fly-play" data-key="sleepy" data-playful>Sleepy</button>
+              </div>
+              <label class="fly-reduced"><input id="fly-reduced" type="checkbox"> Reduced motion</label>
+              <p id="fly-help">Natural idle motions are illustrative.</p>
+              <p id="fly-status" class="fly-status" role="status"></p>
+            </div>
+          </details>
+          <button id="motion" type="button" aria-pressed="true">Pause</button>
+        </div>
+      </div>
+      <p id="fly-greeting" class="fly-greeting" role="status" hidden></p>
+      <p class="sr-only" id="announcement" aria-live="polite"></p>
+    </section>
+  </main>
+
+  <dialog id="about" aria-labelledby="about-title">
+    <div class="dialog-body">
+      <button id="close-about" class="icon-button dialog-close" aria-label="Close About FlyLab 3D"></button>
+      <h2 id="about-title">About FlyLab 3D</h2>
+      <p>Explore anatomy and practice virtual dissections on adult female and third-instar larval <i>Drosophila melanogaster</i>.</p>
+      <section class="researcher-profile" aria-labelledby="researcher-profile-title">
+        <h2 id="researcher-profile-title" tabindex="-1">About the Researcher</h2>
+        <div class="researcher-identity">
+          <span class="researcher-avatar" aria-hidden="true">MA</span>
+          <div>
+            <h3>Muhammad Atif</h3>
+            <p class="researcher-role">Researcher &amp; FlyLab 3D Developer</p>
+          </div>
+        </div>
+        <dl class="researcher-facts">
+          <div>
+            <dt>Affiliation</dt>
+            <dd>Kookmin University, Seoul, South Korea</dd>
+          </div>
+          <div>
+            <dt>Field</dt>
+            <dd><i>Drosophila</i> Research, Molecular Biology, and Neurobiology</dd>
+          </div>
+        </dl>
+        <p class="researcher-biography">Muhammad Atif is a graduate researcher at Kookmin University, South Korea, specializing in <i>Drosophila melanogaster</i> as a model organism. His research interests include insect chemosensation, gustatory receptor mechanisms, neurobiology, molecular genetics, and behavioral physiology. He is interested in integrating experimental biology with interactive 3D technologies to make scientific research techniques more accessible, engaging, and educational for students and researchers.</p>
+      </section>
+      <h2>Model and methods</h2>
+      <p>The 3D geometry is an original educational reconstruction informed by published morphology and organ anatomy. Positions and shapes are schematic. Scientific mode illustrates observed types of grooming and locomotion. Playful poses are expressive animations.</p>
+      <h2>Protocol library</h2>
+      <p>The virtual lessons teach bench preparation, landmark recognition, and dissection sequence. They are educational prototypes awaiting expert review. The linked papers and JoVE pages contain the published methods and videos.</p>
+      <p>Training plans and session records are saved in this browser when local storage is available.</p>
+      <h2>Observations</h2>
+      <p>Experiment and Compare read CSV or JSON files in your browser. Measurements are averaged by structure, condition and time point. The example file contains illustrative values.</p>
+      <h2>Sources</h2>
+      <ul class="dialog-sources" id="about-sources"></ul>
+    </div>
+  </dialog>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
+
