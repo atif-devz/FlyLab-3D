@@ -4,7 +4,7 @@ A virtual laboratory for *Drosophila melanogaster*. It includes 3D anatomy, diss
 
 Developed by **Muhammad Atif**, graduate researcher at Kookmin University, Seoul, South Korea. FlyLab 3D is an independent project for science education.
 
-![FlyLab 3D project card with the fruit fly emblem and the virtual laboratory title](dist/flylab-social.png)
+![Adult Drosophila antennae in the FlyLab 3D schematic model](flylab-adult-antennae.png)
 
 ## Run the app
 
