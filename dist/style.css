@@ -456,3 +456,68 @@ dialog::backdrop { background: #243c324b; }
   .dashboard-aside,.dashboard-lessons { grid-template-columns: minmax(0,1fr); }
 }
 
+.top-actions { justify-self: end; display: flex; gap: 3px; }
+.top-actions #global-research { background: var(--pale); color: var(--green); }
+.topbar { grid-template-columns: minmax(130px,1fr) auto minmax(104px,1fr); }
+@media (max-width: 850px) {
+  .topbar { grid-template-columns: minmax(113px,1fr) auto auto; }
+}
+@media (max-width: 650px) {
+  .topbar { height: auto; min-height: 83px; grid-template-columns: minmax(0,1fr) auto; padding: 4px 9px 6px; row-gap: 2px; }
+  .top-actions { grid-column: 2; grid-row: 1; }
+  .modes { grid-column: 1/-1; grid-row: 2; justify-self: stretch; overflow-x: auto; }
+  .modes button { flex: 1; justify-content: center; }
+}
+@media (min-width: 556px) and (max-width: 650px) {
+  .workbench { height: calc(100dvh - 83px); }
+}
+.research-form { display: grid; gap: 4px; max-width: 760px; }
+.research-form #research-query { padding: 9px; font-size: 14px; }
+.research-results { display: grid; gap: 10px; margin: 15px 0; }
+.research-results .lab-grid { margin-top: 0; }
+.research-results > h2 { font-size: 15px; }
+.research-result .lab-controls a, .research-directory a { font-size: 11px; }
+.research-result .lab-controls { column-gap: 12px; }
+.research-result .research-id { font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.research-directory summary, .research-sources-status summary { font-weight: 650; }
+.research-directory ul, .research-sources-status ul { display: grid; gap: 7px; padding-inline-start: 19px; }
+
+[data-theme=dark] {
+  color-scheme: dark;
+  --ink: #edf2f0;
+  --muted: #becdc7;
+  --line: #40524b;
+  --green: #99ddbe;
+  --pale: #254638;
+  --dark-background: #121c19;
+  --dark-panel: #1c2925;
+  --dark-raised: #283932;
+  color: var(--ink);
+  background: var(--dark-background);
+}
+[data-theme=dark] :is(.topbar,.navigator,.lab-stations,dialog,.dashboard-block,.lab-lesson-card,.reference-card,.featured-protocol,.lab-card,.lab-section table,.display-panel,.inspector,.fly-panel-card,.specimen,.search) {
+  background: var(--dark-panel); border-color: var(--line); color: var(--ink);
+}
+[data-theme=dark] :is(.stage.catalog-view,.lab-workspaces,.dashboard) {
+  background: var(--dark-background); border-color: var(--line);
+}
+[data-theme=dark] :is(.modes,.lab-section thead th,.protocol-empty,.protocol-caption,.display > summary,.camera-controls,.pill,.selection-tools) {
+  background: var(--dark-raised); border-color: var(--line); color: var(--ink);
+}
+[data-theme=dark] :is(.brand,.icon-button,.modes button,.lab-section,.lab-field,.fly-panel > summary,.fly-panel-card .fly-status) {
+  color: var(--ink);
+}
+[data-theme=dark] :is(.brand-accent,.lab-section .lab-provenance,.lab-section .lab-status) { color: var(--green); }
+[data-theme=dark] :is(.brand small,.lab-card p,.lab-section > p,.lab-section > header > p,.lab-section .lab-muted,.lab-section small,.lab-station-group h2,.fly-panel-card p) { color: var(--muted); }
+[data-theme=dark] :is(.modes button[aria-pressed=true],.lab-station-group button[aria-current=page],.lab-section button[aria-pressed=true],.fly-panel-card button[aria-pressed=true],.protocol-tools button[aria-pressed=true],.lab-section .lab-result,.protocol-feedback) {
+  color: var(--ink); background: var(--pale); border-color: var(--line);
+}
+[data-theme=dark] .protocol-feedback.error { color: #ffdab4; background: #3a2c22; border-color: #71583f; }
+[data-theme=dark] :is(button:not(.modes button,.icon-button,.protocol-primary,.structure-main,.tab-button),.lab-field input,.lab-field select,.lab-field textarea,.display-panel select) {
+  color: var(--ink); background: var(--dark-panel); border-color: var(--line);
+}
+[data-theme=dark] :is(button:not(.protocol-primary):not(:disabled):hover,.structure-row:hover) { background: var(--dark-raised); }
+[data-theme=dark] :is(.source-list,.lab-section td,.lab-section th,.dashboard-intro,.dashboard-note,.specimen-marker) { border-color: var(--line); }
+[data-theme=dark] :focus-visible { outline-color: var(--green); }
+[data-theme=dark] .analysis-plot svg text { fill: currentColor; }
+
