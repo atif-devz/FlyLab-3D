@@ -1,0 +1,55 @@
+name: Deploy FlyLab 3D to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: flylab-pages
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Configure Pages
+        id: pages
+        uses: actions/configure-pages@v5
+      - name: Verify the interactive application
+        run: |
+          node make-portable.mjs FlyBio_3D.html
+          node --experimental-vm-modules verify-portable.mjs FlyBio_3D.html
+      - name: Build public pages
+        env:
+          PAGES_BASE: ${{ steps.pages.outputs.base_url }}
+          GOOGLE_SITE_VERIFICATION: ${{ vars.GOOGLE_SITE_VERIFICATION }}
+        run: |
+          node build-pages.mjs
+          node verify-pages.mjs pages-build "$PAGES_BASE"
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: pages-build
+
+  deploy:
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.publish.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy production site
+        id: publish
+        uses: actions/deploy-pages@v4
+
