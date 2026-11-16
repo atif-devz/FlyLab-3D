@@ -19,14 +19,21 @@ class Element {
     this.dataset = {};
     this.classList = { toggle() {} };
     this.scrollTop = 0;
+    this.isConnected = true;
+    this.listeners = new Map();
+    this.experimentNodes = new Map();
   }
   append() {}
-  addEventListener() {}
+  addEventListener(name, handler) { this.listeners.set(name, handler); }
   setAttribute() {}
   removeAttribute() {}
   focus() { this.focused = true; }
   showModal() { this.open = true; }
-  querySelector() { return null; }
+  querySelector(selector) {
+    if (this.id !== 'lab-panel' || !selector.startsWith('[data-experiment-')) return null;
+    if (!this.experimentNodes.has(selector)) this.experimentNodes.set(selector, new Element());
+    return this.experimentNodes.get(selector);
+  }
   querySelectorAll() { return []; }
   click() {
     if (this.download) downloads.push({ name: this.download, body: blobs.get(this.href) });
@@ -47,19 +54,27 @@ const context = vm.createContext({
   matchMedia: () => ({ matches: true }),
   console: { error: error => errors.push(error) },
   clearInterval,
+  clearTimeout,
   setTimeout() {},
   localStorage: {
     getItem: name => storage.get(name) ?? null,
     setItem: (name, value) => storage.set(name, value),
+    get length() { return storage.size; },
+    key: index => [...storage.keys()][index] ?? null,
   },
-  URL: {
-    createObjectURL(blob) {
+  URL: class extends URL {
+    static createObjectURL(blob) {
       const url = 'blob:verification/' + blobs.size;
       blobs.set(url, blob);
       return url;
-    },
+    }
   },
+  AbortController,
+  DOMException,
   Blob,
+  FormData: class {
+    constructor(form) { return Object.entries(form.values ?? {}); }
+  },
   TextEncoder,
   TextDecoder,
   Intl,
@@ -386,15 +401,98 @@ assert.ok(xlsxBytes.includes(Buffer.from('A &amp; B')));
 const guide = await getExports('guide');
 assert.match(guide.rankMethods('adult VNC')[0].title, /ventral nerve cord/i);
 
+const research = await getExports('researchWorkbench');
+const anatomyMatches = research.findLocalResearch('larval VNC', 'anatomy');
+assert.equal(anatomyMatches[0]?.id, 'larval-vnc');
+assert.ok(anatomyMatches.every(result => result.type === 'anatomy'));
+assert.ok(research.findLocalResearch('larval VNC', 'protocol').some(result => result.id === 'larval-cns-jove'));
+assert.equal(research.findLocalResearch('larval VNC', 'gene').length, 0);
+const { searchResearchSource } = await getExports('researchSources');
+let providerRequest;
+const provider = await searchResearchSource('uniprot', 'Ir25a', {
+  fetchImpl: async (url, options) => {
+    providerRequest = { url: new URL(url), options };
+    return new Response(JSON.stringify({ results: [
+      { primaryAccession: 'Q9VR32', organism: { taxonId: 7227 }, uniProtkbId: 'IR25A_DROME',
+        uniProtKBCrossReferences: [{ database: 'FlyBase', id: 'FBgn0031634' }] },
+      { primaryAccession: 'P01138', organism: { taxonId: 9606 } },
+    ] }), { headers: { 'X-UniProt-Release': 'test-release' } });
+  },
+});
+assert.equal(providerRequest.url.hostname, 'rest.uniprot.org');
+assert.match(providerRequest.url.searchParams.get('query'), /organism_id:7227.*Ir25a/i);
+assert.equal(providerRequest.options.credentials, 'omit');
+assert.equal(provider.status, 'ok');
+assert.equal(provider.release, 'test-release');
+assert.deepEqual(Array.from(provider.records, record => record.id), ['Q9VR32']);
+assert.match(provider.records[0].links[0].url, /flybase\.org\/reports\/FBgn0031634$/);
+
+const experiment = await getExports('experimentBuilder');
+const draft = { ...experiment.createExperimentDraft(), title: 'Larval anatomy practice',
+  protocolId: 'larval-cns-jove', stage: 'l3', origin: 'synthetic', sampleSize: '12' };
+const archive = experiment.encodeExperiment(draft);
+assert.equal(experiment.decodeExperiment(archive).citation.id, draft.protocolId);
+assert.throws(() => experiment.decodeExperiment(archive.replace('"version": 1', '"version": 99')), /version 1/);
+const labHost = elements.get('lab-workspaces');
+click('open-research');
+assert.equal(app.state.mode, 'labs');
+assert.match(labHost.innerHTML, /<h1>Research resources<\/h1>/);
+assert.equal(elements.get('research-query').focused, true);
+click('station', 'experiment-builder');
+assert.match(labHost.innerHTML, /data-key="experiment-builder" aria-current="page"/);
+assert.match(labHost.innerHTML, /<h1>Experiment builder<\/h1>/i);
+const panel = elements.get('lab-panel');
+const importExperiment = () => panel.listeners.get('change')({ target: {
+  matches: selector => selector === '[data-experiment-import]', files: [new Blob([archive])],
+} });
+await importExperiment();
+assert.match(panel.innerHTML, /Experiment imported/);
+const form = panel.querySelector('[data-experiment-form]');
+form.values = { protocolId: draft.protocolId };
+form.matches = selector => selector === '[data-experiment-form]';
+panel.listeners.get('submit')({ target: form, preventDefault() {} });
+assert.match(panel.innerHTML, /Experiment saved in this browser/);
+await importExperiment();
+assert.match(panel.innerHTML, /Imported as a copy/);
+panel.listeners.get('click')({ target: { closest: () => ({ dataset: { experimentAction: 'export' } }) } });
+const copy = experiment.decodeExperiment(await downloads.at(-1).body.text());
+assert.notEqual(copy.id, draft.id);
+assert.equal(copy.derivedFrom, draft.id);
+assert.equal(copy.revision, 0);
+assert.equal(copy.origin, 'synthetic');
+assert.equal(copy.citation.id, draft.protocolId);
+assert.match(panel.innerHTML, /Larval anatomy practice · Revision 1/);
+click('station', 'inference');
+assert.match(labHost.innerHTML, /<h1>Statistical tests<\/h1>/);
+click('mode', 'dashboard');
+
+const tests = await getExports('inference');
+const welch = tests.welchTTest([14.2, 15, 12.7, 14.9, 16.1, 13.5], [11.8, 10.4, 11.4, 12.3, 9.7]);
+const near = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-9, actual + ' vs ' + expected);
+near(welch.statistic, 4.811405184941245);
+near(welch.pValue, 0.0009728680364177806);
+near(welch.interval[0], 1.7366040994825704);
+near(welch.interval[1], 4.823395900517428);
+const anova = tests.oneWayAnova([[6.9, 5.4, 5.8, 4.6, 4], [8.3, 6.8, 7.8, 9.2, 6.5], [8, 10.5, 8.1, 6.9, 9.3]]);
+near(anova.statistic, 9.591107036442812);
+near(anova.pValue, 0.0032482226008593005);
+assert.deepEqual(Array.from(tests.benjaminiHochberg([.01, .04, .03, .002])), [.02, .04, .04, .008]);
+assert.throws(() => tests.prepareInference(fromCsv('unit_id,condition,response\nfly1,A,1\nfly1,B,2'),
+  { method: 'welch', unitId: 'unit_id', group: 'condition', value: 'response', first: 'A', second: 'B' }), /appears more than once/);
+
 const ui = { escapeHtml: value => String(value ?? ''), download() {}, announce() {}, readTrainingReports: () => [] };
-for (const [module, entry, label] of [
+const workspaces = [
   ['expanded', 'createExpandedDissection', /Expanded dissection/], ['microscopy', 'createMicroscopy', /confocal/],
   ['genetics', 'createGeneticsLab', /genetics|cross/i], ['molecular', 'createMolecularLab', /molecular/i],
   ['neuro', 'createNeuroLab', /recording/i], ['behavior', 'createBehaviorLab', /behavior/i],
   ['analysis', 'createAnalysisLab', /Data analysis/], ['planner', 'createResearchPlanner', /Research planner/],
   ['guide', 'createResearchGuide', /Research guide/], ['course', 'createCourseLab', /learning|assessment/i],
   ['spatial', 'createSpatialLab', /WebXR/],
-]) {
+  ['researchWorkbench', 'createResearchWorkbench', /Research resources/],
+  ['experimentBuilder', 'createExperimentBuilder', /Experiment builder/i],
+  ['inference', 'createInferenceLab', /Statistical tests/],
+];
+for (const [module, entry, label] of workspaces) {
   const factory = (await getExports(module))[entry];
   assert.match(factory(ui).render(), label);
 }
@@ -502,5 +600,5 @@ for (const [name, baseline] of rest) {
   const bounds = new three.Box3().setFromObject(adult.structures[name]);
   assert.ok(baseline.min.distanceTo(bounds.min) < 1e-6 && baseline.max.distanceTo(bounds.max) < 1e-6, name + ' rest pose changed');
 }
-console.log('Verified all ' + manifest.length + ' offline modules, researcher profile, animation view isolation, pose floor clearance and rest reset, eleven workspaces, four core lessons, analysis, and review rooms.');
+console.log('Verified all ' + manifest.length + ' offline modules, ' + workspaces.length + ' workspaces, four core lessons, researcher profile, animation, provider lookup, experiment lineage, statistical inference, and review rooms.');
 

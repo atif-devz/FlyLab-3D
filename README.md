@@ -1,6 +1,6 @@
 # FlyLab 3D
 
-An offline virtual laboratory for *Drosophila melanogaster*, inspired by [MouseBio_3D](https://qasim-hussain-code.github.io/MouseBio_3D/). The Phase 1–5 workspaces cover anatomy, dissection, imaging, simulated experiments, analysis, planning and training.
+A virtual laboratory for *Drosophila melanogaster*. It includes 3D anatomy, dissection, imaging, simulated experiments, data analysis, and research and teaching workspaces. [Open FlyLab 3D](https://atif-devz.github.io/FlyLab-3D/) · [MouseBio_3D inspiration](https://qasim-hussain-code.github.io/MouseBio_3D/)
 
 Developed by **Muhammad Atif**, graduate researcher at Kookmin University, Seoul, South Korea. FlyLab 3D is an independent project for science education.
 
@@ -19,10 +19,13 @@ Serve the static files in `dist` with any static web server. For example, from t
 - **Experiment** accepts local CSV and JSON files and maps observations to structures.
 - **Compare** maps two conditions to synchronized views and a common color scale.
 - **Labs** contains five expanded dissections, synthetic immunostaining/confocal images, genetics and stock tracking, conceptual molecular simulations, six synthetic recording modes, and 17 behavioral and physiological assays.
+- **Research resources** searches FlyLab anatomy and protocols alongside six official metadata providers. Try the linked Ir25a records and adult sensory anatomy. The magnifier or `/` opens search from any workspace. [Open research resources](https://atif-devz.github.io/FlyLab-3D/?view=labs&station=resources&q=Ir25a)
+- **Experiment builder** saves a local design record with specimen and group definitions, experimental units, bench links, references, and revision lineage. Export portable JSON and a readable report. [Open the builder](https://atif-devz.github.io/FlyLab-3D/?view=labs&station=experiment-builder)
 - **Data Analysis** reads CSV, TSV, and the first visible worksheet in an Excel `.xlsx` workbook. It reports descriptive statistics, preferences, feeding corrections, spike counts/rates, right-censored survival, developmental timing, relative Cq expression, and microscopy metrics. Outputs carry provenance. The file input and example or simulator routes keep imported and synthetic data distinct.
+- **Statistical inference** applies Welch’s two-sample t-test, one-way ANOVA, or Benjamini–Hochberg false discovery rate adjustment. Review input units, excluded rows, and assumptions before running a test. The workspace exports results, provenance, and observation plots. [Open statistical inference](https://atif-devz.github.io/FlyLab-3D/?view=labs&station=inference)
 - **Research and Training** includes experimental planning, source search, local course handoffs, and an optional immersive anatomy viewer. The guide can rank trusted catalog entries using the browser's on-device model when one is already available. The viewer uses WebXR on compatible devices and secure origins.
 
-Use the in-app example CSV for measurement columns and structure IDs. Imported files stay in browser memory. Training state uses browser-local storage when available. Geometry is schematic and original. The lessons await independent scientific review. See the in-app Sources tab for references.
+Use the in-app examples for data columns and structure IDs. Imported analysis files stay in browser memory. Training, experiment drafts and theme preferences use browser-local storage when available. External research searches send only the submitted query to applicable providers. Geometry is schematic and original. The lessons await independent scientific review. [Research workbench methods](docs/RESEARCH_WORKBENCH.md) · [Roadmap](ROADMAP.md) · [Changelog](CHANGELOG.md)
 
 ## Local review rooms
 
