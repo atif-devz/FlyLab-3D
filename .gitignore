@@ -1,0 +1,16 @@
+/pages-build/
+/release-preview/
+/FlyBio_3D.html
+/.openai/
+*.log
+*.zip
+.env
+.env.*
+*.local
+node_modules/
+wb-test-*/
+verify-workbook.mjs
+make-social-card.py
+.DS_Store
+Thumbs.db
+
